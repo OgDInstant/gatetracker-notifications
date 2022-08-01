@@ -15,6 +15,7 @@ SMTP_PORT =
 
 MAIL_FROM = 
 MAIL_TO = 
+MAIL_TO = 
 
 COL_TIME_FINISH = 0
 COL_TIME_START = 1
@@ -28,7 +29,8 @@ COL_ALEPH_STATUS = 8
 
 LOG_PATH = "logs"
 LOG_ARCHIVE_PATH = "logs_archive"
-htmlbody = '<table border="1">\n'
+htmlbody = '<table border="1" style="border-collapse:collapse" cellspacing="3" cellpadding="3">\n'
+htmlbody += '<tr><th>Datum</th><th>Čas</th><th>Brána</th><th>Čárový kód</th><th>Název knihy</th></tr>'
 processed_files = []
 rowcount = 0
 # Zde vytvarime tabulku
@@ -37,17 +39,23 @@ for filename in os.listdir(LOG_PATH):  # vylistujeme sei soubory
         print("Zpracovava se " + filename + " ...")
         csvfile = open(LOG_PATH + os.sep + filename)
         csvdata = csv.reader(csvfile, delimiter=',', quotechar='"')  # Nacteme CSV
-
+        
+        manulu=False
         for row in csvdata:
                 # print(len(row))
                 if len(row) > COL_BAR_CODE:  # Kdyz obsahuje sloupec barcode, resp. kdyz pocet sloupcu je alespon tolik, ze je tam i cislo slopce BAR_CODE
-                    if row[COL_BAR_CODE] != '':  # Jestli BARCODE neni prazdny
+                    if row[COL_BAR_CODE] != '' and row[COL_STATUS] == "0":  # Jestli BARCODE neni prazdny
                         if row[COL_BAR_CODE].startswith("266") or row[COL_BAR_CODE].startswith("3198") or row[COL_BAR_CODE].startswith("42340"): 
                             htmlbody += '<tr>\n'
-                            htmlbody += "\t<td>{}</td><td>{}</td><td>{}</td><td>{}</td>\n".format(row[COL_TIME_START], row[COL_GATE_NAME], row[COL_BAR_CODE], row[COL_BOOK_NAME])
+                            htmlbody += "\t<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td>\n".format(
+                                row[COL_TIME_START].partition(" ")[0], row[COL_TIME_START].partition(" ")[2], row[COL_GATE_NAME],
+                                row[COL_BAR_CODE], row[COL_BOOK_NAME])
                             htmlbody += '</tr>\n'  # Radek tabulky
-                            rowcount += 1  # Zvysime pocet zpracovanych radku abychom vedeli, jestli ma smysl posilat mail:-) 
-        processed_files.append(filename)  # Zapamutejme si, ktere soubory jmse zpracovavali, budeme je mazat az pozdeji
+                            rowcount += 1  # Zvysime pocet zpracovanych radku abychom vedeli, jestli ma smysl posilat mail:-)
+                            manulu=True
+
+        if not manulu:
+            processed_files.append(filename)  # Zapamutejme si, ktere soubory jmse zpracovavali, budeme je mazat az pozdeji
 
 htmlbody += '</table>\n'
 
@@ -97,4 +105,5 @@ if rowcount:  # Jestli mame nejake radky
                 os.rename(LOG_PATH + os.sep + filename, LOG_ARCHIVE_PATH + os.sep + filename)
             except Exception as e:
                 print(e)
-
+    # print("--------------Message-----------")
+    # print(message.as_string())
