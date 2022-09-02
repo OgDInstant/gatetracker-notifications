@@ -64,7 +64,7 @@ if rowcount:  # Jestli mame nejake radky
     message = MIMEMultipart("alternative")
     message["Subject"] = "Neprověřené incidenty"
     message["From"] = MAIL_FROM
-    message["To"] = MAIL_TO
+    message["To"] = ','.join(MAIL_TO)
 
     part1 = MIMEText(bs4.BeautifulSoup(htmlbody, features="html.parser").get_text(), "plain")
     part2 = MIMEText(htmlbody, "html")    
