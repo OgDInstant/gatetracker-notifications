@@ -15,7 +15,6 @@ SMTP_PORT =
 
 MAIL_FROM = 
 MAIL_TO = 
-MAIL_TO = 
 
 COL_TIME_FINISH = 0
 COL_TIME_START = 1
@@ -33,16 +32,18 @@ htmlbody = '<table border="1" style="border-collapse:collapse" cellspacing="3" c
 htmlbody += '<tr><th>Datum</th><th>Čas</th><th>Brána</th><th>Čárový kód</th><th>Název knihy</th></tr>'
 processed_files = []
 rowcount = 0
+      
 # Zde vytvarime tabulku
 for filename in os.listdir(LOG_PATH):  # vylistujeme sei soubory
     if filename.startswith('saved-') and not filename.startswith('saved-' + time.strftime("%Y-%m-%d")):  # Vybereme soubory saved-
         print("Zpracovava se " + filename + " ...")
-        csvfile = open(LOG_PATH + os.sep + filename)
+        csvfile = open(LOG_PATH + os.sep + filename,encoding="utf-8")
         csvdata = csv.reader(csvfile, delimiter=',', quotechar='"')  # Nacteme CSV
         
         manulu=False
         for row in csvdata:
                 # print(len(row))
+                # print(row)
                 if len(row) > COL_BAR_CODE:  # Kdyz obsahuje sloupec barcode, resp. kdyz pocet sloupcu je alespon tolik, ze je tam i cislo slopce BAR_CODE
                     if row[COL_BAR_CODE] != '' and row[COL_STATUS] == "0":  # Jestli BARCODE neni prazdny
                         if row[COL_BAR_CODE].startswith("266") or row[COL_BAR_CODE].startswith("3198") or row[COL_BAR_CODE].startswith("42340"): 
@@ -60,14 +61,14 @@ for filename in os.listdir(LOG_PATH):  # vylistujeme sei soubory
 htmlbody += '</table>\n'
 
 if rowcount:  # Jestli mame nejake radky
-    print(htmlbody)
+    #print(htmlbody)
     message = MIMEMultipart("alternative")
     message["Subject"] = "Neprověřené incidenty"
     message["From"] = MAIL_FROM
     message["To"] = ','.join(MAIL_TO)
 
-    part1 = MIMEText(bs4.BeautifulSoup(htmlbody, features="html.parser").get_text(), "plain")
-    part2 = MIMEText(htmlbody, "html")    
+    part1 = MIMEText(bs4.BeautifulSoup(htmlbody, features="html.parser").get_text(), "plain","utf-8")
+    part2 = MIMEText(htmlbody, "html", "utf-8")    
     message.attach(part1)
     message.attach(part2)
 
